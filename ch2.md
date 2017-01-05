@@ -29,9 +29,9 @@ In other words, there's a point at `(2,11)` on that curve in the graph. And for 
 
 So what's any of this got to do with FP?
 
-In math, a function always takes input(s), and always gives an output. Those inputs and outputs are often interpreted as parts of coordinates to be graphed.
+In math, a function always takes input(s), and always gives an output. A term you'll often hear around FP is "morphism"; this is a fancy way of describing a set of values that maps to another set of values, like the inputs of a function related to the outputs of that function.
 
-In our programs, however, we can define functions with all sorts of input(s) and output(s), and they need not have any relationship to a curve on a graph.
+In algebraic math, those inputs and outputs are often interpreted as parts of coordinates to be graphed. In our programs, however, we can define functions with all sorts of input(s) and output(s), and they need not have any relationship to a visually plotted curve on a graph.
 
 ### Function vs Procedure
 
@@ -472,7 +472,7 @@ I'm not unconditionally saying that you should always have a single `return`, or
 
 One technique that you've probably used in most code you've written, and maybe didn't even think about it much, is to have a function output some or all of its values by simply changing variables outside itself.
 
-Remember our `y = f(x) = 2x^2 + 3` function from earlier in the chapter? We could have defined it like this in JS:
+Remember our <code>f(x) = 2x<sup>2</sup> + 3</code> function from earlier in the chapter? We could have defined it like this in JS:
 
 ```js
 var y;
