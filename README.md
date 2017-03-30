@@ -1,16 +1,27 @@
 # Functional-Light JavaScript (book)
 
-This book explores the core principles of functional programming (FP) as they are applied to JavaScript. But what makes this book different is that we approach these principles without drowning in all the heavy terminology. We look at a subset of FP foundational concepts that I call "Functional-Light Programming" (FLP) and apply it to JavaScript.
+本书探索一些可以应用在 JavaScript 函数式编程(FP)中的核心原则. 本书特殊的地方在于我们循序渐进地
+了解并遵循这些原则而不是挣扎在深奥的技术漩涡中. 我们会寻找部分适用于 JavaScript 的函数式编程基础概念,
+将之称为函数编程之光.
 
-**Note:** Despite the word "Light" in the title, I do not consider or recommend this book as a "beginner", "easy", or "intro" book on the topic. This book is rigorous and full of gritty detail; it expects a solid foundation of JS knowledge before diving in. "Light" means limited in scope; instead of being more broad, this book goes much deeper into each topic than you typically find in other FP-JavaScript books.
+**注:** 尽管本书书名中有 Light 这个词, 但我并不建议本书被冠以 "初学", "简单", "入门" 等头衔.
+本书是严谨且全面的, 面向的是有扎实 JS 基础知识的人. Light 意味着有限而不是宽泛的适用面, 本书
+在每一个主题上都会比其他你能找到的 JavaScript 函数式编程书籍更加深入.
 
 Let's face it: unless you're already a member of the FP cool kids club (I'm not!), a statement like, "a monad is just a monoid in the category of endofunctors", just doesn't mean anything useful to us.
+(译者: 大概意思是函数式编程这东西说起来太玄乎, 我们还太嫩, 不容易搞懂. 直译的话我翻译不出来,
+比如 category 可被翻译为群论. 了解请看 Monoid 和 Monad 的相关定义.)
 
-That's not to say the terms are meaning*less* or that FPrs are bad for using them. Once you graduate from Functional-Light, you'll maybe/hopefully want to study FP more formally, and you'll certainly have plenty of exposure to what they mean and why.
+但这也不是说术语对我们无用或使用那些术语的函数式编程人员故弄玄虚. 一旦你完成了本书的阅读, 或许你
+会希望进一步正式地学习函数式编程, 你当然也会窥探到那些术语的意义和产生原因.
 
-But I want you to be able to apply some of the fundamentals of FP to your JavaScript *now*, because I believe it will help you write better, more *reason*able code.
+(虽然我们刚才说了你可能还没真正理解函数式编程)但我希望你**现在**写 JavaScript 的时候已经会应用一些
+函数式编程的基本原理, 因为我相信这可以帮你写出更好, 更加合理的代码.
 
-**To read more about the motivations and perspective behind this book, check out the [Preface](preface.md).**
+**想了解更多本书背后的故事, 请看 [Preface](preface.md) 章节.**
+
+functional programming (FP, 函数式编程)
+Functional-Light Programming (FLP)
 
 ## Book
 
