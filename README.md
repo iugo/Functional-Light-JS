@@ -1,9 +1,7 @@
 # Functional-Light JavaScript (book)
 
-<a href="https://igg.me/at/fljs"><img src="https://cloud.githubusercontent.com/assets/150330/18719908/644f7630-7ff7-11e6-92d9-4abc3cf2b4a9.png" border=0 vspace=20><br><big><strong>Please Support my Indiegogo Crowdfunding Campaign!</strong></big></a>
-
-本书探索一些可以应用在 JavaScript 函数式编程中的核心原则. 本书特殊的地方在于我们循序渐进地
-了解这些原则而不是挣扎在深奥的技术漩涡中. 我们会寻找部分适用于 JavaScript 的函数式编程基础概念,
+本书探索一些可以应用在 JavaScript 函数式编程(FP)中的核心原则. 本书特殊的地方在于我们循序渐进地
+了解并遵循这些原则而不是挣扎在深奥的技术漩涡中. 我们会寻找部分适用于 JavaScript 的函数式编程基础概念,
 将之称为函数编程之光.
 
 **注:** 尽管本书书名中有 Light 这个词, 但我并不建议本书被冠以 "初学", "简单", "入门" 等头衔.
@@ -29,10 +27,10 @@ Functional-Light Programming (FLP)
 
 [Table of Contents](toc.md)
 
-* Foreword (TBA)
+* [Foreword](foreword.md) (by [Brian Lonsdorf aka "Prof Frisby"](https://twitter.com/DrBoolean))
 * [Preface](preface.md)
 * [Chapter 1: Why Functional Programming?](ch1.md)
-* [Chapter 2: Functional Functions](ch2.md)
+* [Chapter 2: Foundations of Functional Functions](ch2.md)
 * [Chapter 3: Managing Function Inputs](ch3.md)
 * [Chapter 4: Composing Functions](ch4.md)
 * [Chapter 5: Reducing Side Effects](ch5.md)
@@ -42,13 +40,13 @@ Functional-Light Programming (FLP)
 * [Chapter 9: Recursion](ch9.md)
 * [Chapter 10: Functional Async](ch10.md)
 * [Chapter 11: Putting It All together](ch11.md)
-* Appendix A: Transducing
-* Appendix B: The Humble Monad
-* Appendix C: FP Libraries
+* [Appendix A: Transducing](apA.md)
+* [Appendix B: The Humble Monad](apB.md)
+* [Appendix C: FP Libraries](apC.md)
 
 ## Publishing
 
-It is expected this book will eventually be published, but nothing is in the works yet. Keep an eye out for future updates here!
+I'm self-publishing this book, most likely digitally [on Leanpub](https://leanpub.com/fljs/). I'll also be trying to work out an option to sell print book copies, but that part is still uncertain.
 
 If you'd like to contribute financially towards the effort (or any of my other OSS work) aside from purchasing the books, I do have a [patreon](https://www.patreon.com/getify) that I would always appreciate your generosity towards.
 
@@ -74,6 +72,6 @@ But **PLEASE** read the [Contributions Guidelines](CONTRIBUTING.md) carefully be
 
 ## License & Copyright
 
-The materials herein are all (c) 2016 Kyle Simpson.
+The materials herein are all (c) 2016-2017 Kyle Simpson.
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivs 4.0 Unported License</a>.

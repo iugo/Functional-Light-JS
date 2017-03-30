@@ -71,7 +71,7 @@ We can naturally extend mapping from a single value transformation to a collecti
 To implement `map(..)`:
 
 ```js
-function map(arr,mapperFn) {
+function map(mapperFn,arr) {
 	var newList = [];
 
 	for (let idx = 0; i < arr.length; i++) {
@@ -84,7 +84,9 @@ function map(arr,mapperFn) {
 }
 ```
 
-Notice that `mapperFn(..)` is naturally passed the list item to map/transform, but also an `idx` and `arr`. We're doing that to keep consistency with the built-in array `map(..)`. These extra pieces of information can be very useful in some cases.
+**Note:** The parameter order `mapperFn, arr` may feel backwards at first, but this convention is much more common in FP libraries because it makes these utilities easier to compose (with currying).
+
+The `mapperFn(..)` is naturally passed the list item to map/transform, but also an `idx` and `arr`. We're doing that to keep consistency with the built-in array `map(..)`. These extra pieces of information can be very useful in some cases.
 
 But in other cases, you may want to use a `mapperFn(..)` that only the list item should be passed to, because the extra arguments might change its behavior. In "All For One" in Chapter 3, we introduced `unary(..)`, which limits a function to only accept a single argument (no matter how many are passed).
 
@@ -97,9 +99,9 @@ map( ["1","2","3"], unary( parseInt ) );
 
 JavaScript provides the `map(..)` utility built-in on arrays, making it very convenient to use as part of a chain of operations on a list.
 
-**Note:** The JavaScript array prototype operations (`map(..)`, `filter(..)`, and `reduce(..)`) all accept an optional last argument to use for `this` binding of the function. As we discussed in "What's This?" in Chapter 2, `this`-based coding should generally be avoided wherever possible in terms of being consistent with the best practices of FP. As such, our example implementations in this chapter do not support this `this` feature.
+**Note:** The JavaScript array prototype operations (`map(..)`, `filter(..)`, and `reduce(..)`) all accept an optional last argument to use for `this` binding of the function. As we discussed in "What's This?" in Chapter 2, `this`-based coding should generally be avoided wherever possible in terms of being consistent with the best practices of FP. As such, our example implementations in this chapter do not support such a `this`-binding feature.
 
-Beyond the obvious numeric or string operations you could perform against a list of those respective value types, here's some other examples of mapping operations. We can use `map(..)` to transform a list of functions a list of their return values:
+Beyond the obvious numeric or string operations you could perform against a list of those respective value types, here's some other examples of mapping operations. We can use `map(..)` to transform a list of functions into a list of their return values:
 
 ```js
 var one = () => 1;
@@ -129,11 +131,11 @@ Something interesting to observe about `map(..)`: we typically would assume that
 
 Mapping in a general sense could even been parallelized in an environment that supports that, which for a large list could drastically improve performance. We don't see JavaScript actually doing that because there's nothing that requires you to pass a pure function as `mapperFn(..)`, even though you **really ought to**. If you were to pass an impure function and JS were to run different calls in different orders, it would quickly cause havoc.
 
-Even though theoretically mapping is independent, JS has to assume that it's not. That's a bummer.
+Even though theoretically, individual mapping operations are independent, JS has to assume that they're not. That's a bummer.
 
 ### Sync vs Async
 
-The list operations we're discussing in this chapter all operate synchronously on a list of values that are all already present; `map(..)` as conceived here is an eager oepration. But another way of thinking about the mapper function is as an event handler which is invoked for each new value encountered in the list.
+The list operations we're discussing in this chapter all operate synchronously on a list of values that are all already present; `map(..)` as conceived here is an eager operation. But another way of thinking about the mapper function is as an event handler which is invoked for each new value encountered in the list.
 
 Imagine something fictional like this:
 
@@ -145,7 +147,7 @@ arr.addEventListener( "value", multiplyBy3 );
 
 Now, any time a value is added to `arr`, the `multiplyBy3(..)` event handler -- mapper function -- is called with the value, and its transformation is added to `newArr`.
 
-What we're hinting at is that arrays, and the array operations we perform on them, are the eager synchronous versions, whereas these same operations can also be modeled lazily over a "list" that receives its values over time. We'll dive into this topic in a later chapter.
+What we're hinting at is that arrays, and the array operations we perform on them, are the eager synchronous versions, whereas these same operations can also be modeled on a "lazy list" (aka, stream) that receives its values over time. We'll dive into this topic in Chapter 10.
 
 ### Mapping vs Eaching
 
@@ -154,7 +156,7 @@ Some advocate using `map(..)` as a general form of `forEach(..)`-iteration, wher
 ```js
 [1,2,3,4,5]
 .map( function mapperFn(v){
-	console.log( v );
+	console.log( v );			// side effect!
 	return v;
 } )
 ..
@@ -162,7 +164,46 @@ Some advocate using `map(..)` as a general form of `forEach(..)`-iteration, wher
 
 The reason this technique can seem useful is that the `map(..)` returns the array so you can keep chaining more operations after it; the return value of `forEach(..)` is `undefined`. However, I think you should avoid using `map(..)` in this way, because it's a net confusion to use a core FP operation in a decidedly un-FP way.
 
-You've heard the old addage about using the right tool for the right job, right? Hammer for a nail, screwdriver for a screw, etc. This is slightly different: it's use the right tool *in the right way*. A hammer is meant to be swung in your hand; if you instead hold it in your mouth and try to hammer the nail, you're not gonna be very effective.
+You've heard the old addage about using the right tool for the right job, right? Hammer for a nail, screwdriver for a screw, etc. This is slightly different: it's use the right tool *in the right way*.
+
+A hammer is meant to be swung in your hand; if you instead hold it in your mouth and try to hammer the nail, you're not gonna be very effective. `map(..)` is intended to map values, not create side effects.
+
+### A Word: Functors
+
+We've mostly tried to stay away from artificial invented terminology in FP as much as possible in this book. We have used official terms at times, but mostly when we can derive some sense of meaning from them in regular everyday conversation.
+
+I'm going to very briefly break that pattern and use a word that might be a little intimidating: functor. The reason I want to talk about functors here is because we now already understand what they do, and because that term is used heavily throughout the rest of FP literature; you being at least familiar with  and not scared by it will be beneficial.
+
+A functor is a value that has a utility for using an operator function on that value.
+
+If the value in question is compound, meaning it's comprised of individual values -- as is the case with arrays, for example! -- a functor uses the operator function on each individual value. Moreover, the functor utility creates a new compound value holding the results of all the individual operator function calls.
+
+This is all a fancy way of describing what we just looked at with `map(..)`. The `map(..)` function takes its associated value (an array) and a mapping function (the operator function), and executes the mapping function for each individual value in the array. Finally, it returns a new array with all the newly mapped values in it.
+
+Another example: a string functor would be a string plus a utility that executes some operator function across all the characters in the string, returning a new string with the processed letters. Consider this highly-contrived example:
+
+```js
+function uppercaseLetter(c) {
+	var code = c.charCodeAt( 0 );
+
+	// lowercase letter?
+	if (code >= 97 && code <= 122) {
+		// uppercase it!
+		code = code - 32;
+	}
+
+	return String.fromCharCode( code );
+}
+
+function stringMap(mapperFn,str) {
+	return [...str].map( mapperFn ).join( "" );
+}
+
+stringMap( uppercaseLetter, "Hello World!" );
+// HELLO WORLD!
+```
+
+`stringMap(..)` allows a string to be a functor. You can define a mapping function for any data structure; as long as the utility follows these rules, the data structure is a functor.
 
 ## Filter
 
@@ -170,7 +211,9 @@ Imagine I bring an empty basket with me to the grocery store to visit the fruit 
 
 Let's say we call this process *filtering*. Would you more naturally describe my shopping as starting with an empty basket and **filtering in** (selecting, including) only the apples and oranges, or starting with the full display of fruits and **filtering out** (skipping, excluding) the bananas as my basket is filled with fruit?
 
-If you cook spaghetti in a pot of water, and then pour it into a strainer (aka filter) over the sink, are you filtering in the spaghetti or filtering out the water? If you put coffee grounds into a filter and make a cup of coffee, did you filter in the coffee into your cup, or filter out the coffee grounds? Does your view of filtering depend on whether the stuff you want is "kept" in the filter or passes through the filter?
+If you cook spaghetti in a pot of water, and then pour it into a strainer (aka filter) over the sink, are you filtering in the spaghetti or filtering out the water? If you put coffee grounds into a filter and make a cup of coffee, did you filter in the coffee into your cup, or filter out the coffee grounds?
+
+Does your view of filtering depend on whether the stuff you want is "kept" in the filter or passes through the filter?
 
 What about on airline / hotel websites, when you specify options to "filter your results"? Are you filtering in the results that match your criteria, or are you filtering out everything that doesn't match? Think carefully: this example might have a different semantic than the previous ones.
 
@@ -180,7 +223,9 @@ I think the most common interpretation of filtering -- outside of programming, a
 
 The `filter(..)` list operation takes a function to decide if each value in the original array should be in the new array or not. This function needs to return `true` if a value should make it, and `false` if it should be skipped. A function that returns `true` / `false` for this kind of decision making goes by the special name: predicate function.
 
-If you think of `true` as being as a positive signal, the definition of `filter(..)` is that you are saying "keep" (to filter in) a value rather than saying "discard" (to filter out) a value. To use `filter(..)` as an exclusionary action, you have to twist your brain to think of positively signaling an exclusion by returning `false`, and passively letting a value pass through by returning `true`.
+If you think of `true` as being as a positive signal, the definition of `filter(..)` is that you are saying "keep" (to filter in) a value rather than saying "discard" (to filter out) a value.
+
+To use `filter(..)` as an exclusionary action, you have to twist your brain to think of positively signaling an exclusion by returning `false`, and passively letting a value pass through by returning `true`.
 
 The reason this semantic mismatch matters is because of how you will likely name the function used as `predicateFn(..)`, and what that means for the readability of code. We'll come back to this point shortly.
 
@@ -193,7 +238,7 @@ Here's how to visualize a `filter(..)` operation across a list of values:
 To implement `filter(..)`:
 
 ```js
-function filter(arr,predicateFn) {
+function filter(predicateFn,arr) {
 	var newList = [];
 
 	for (let idx = 0; idx < arr.length; idx++) {
@@ -242,7 +287,7 @@ Makes sense, right? But, let's consider using it with the built-in array `filter
 // [1,3,5]
 ```
 
-If you described the `[1,3,5]` result, would you say, "I filtered out the even numbers", or would you say "I filtered in the odd numbers"? I think the former is a more natural way of describing it. But the code reads the opposite. The code reads, almost literally, that we "filtered (in) for each number that is odd".
+If you described the `[1,3,5]` result, would you say, "I filtered out the even numbers", or would you say "I filtered in the odd numbers"? I think the former is a more natural way of describing it. But the code reads the opposite. The code reads, almost literally, that we "filtered (in) each number that is odd".
 
 I personally find this semantic confusing. There's no question there's plenty of precedent for experienced developers. But if you just start with a fresh slate, this expression of the logic seems kinda like not speaking without a double negative -- aka, speaking with a double negative.
 
@@ -287,8 +332,8 @@ To clear up all this confusion, let's define a `filterOut(..)` that actually **f
 ```js
 var filterIn = filter;
 
-function filterOut(arr,predicateFn) {
-	return filterIn( arr, not( predicateFn ) );
+function filterOut(predicateFn,arr) {
+	return filterIn( not( predicateFn ), arr );
 }
 ```
 
@@ -298,17 +343,19 @@ Now we can use whichever filtering makes most sense at any point in our code:
 isOdd( 3 );								// true
 isEven( 2 );							// true
 
-filterIn( [1,2,3,4,5], isOdd );			// [1,3,5]
-filterOut( [1,2,3,4,5], isEven );		// [1,3,5]
+filterIn( isOdd, [1,2,3,4,5] );			// [1,3,5]
+filterOut( isEven, [1,2,3,4,5] );		// [1,3,5]
 ```
 
-I think using `filterIn(..)` and `filterOut(..)` will make your code a lot more readable than just using `filter(..)` and leaving the semantics conflated and confusing for the reader.
+I think using `filterIn(..)` and `filterOut(..)` (known as `reject(..)` in Ramda) will make your code a lot more readable than just using `filter(..)` and leaving the semantics conflated and confusing for the reader.
 
 ## Reduce
 
 While `map(..)` and `filter(..)` produce new lists, typically this third operator (`reduce(..)`) combines (aka "reduces") the values of a list down to a single finite (non-list) value, like a number or string. However, later in this chapter, we'll look at how you can push `reduce(..)` to use it in more advanced ways. `reduce(..)` is one of the most important FP tools; it's like a swiss army all-in-one knife with all its usefulness.
 
-A combination/reduction is abstractly defined as taking two values and making them into one value. Just like with mapping and filtering, the manner of the combination is entirely up to you, and generally dependent on the types of values in the list. For example, numbers will typically be combined through arithmetic, strings through concatenation, and functions through composition.
+A combination/reduction is abstractly defined as taking two values and making them into one value. Some FP contexts refer to this as "folding", as if you're folding two values together into on value. That's a helpful visualization, I think.
+
+Just like with mapping and filtering, the manner of the combination is entirely up to you, and generally dependent on the types of values in the list. For example, numbers will typically be combined through arithmetic, strings through concatenation, and functions through composition.
 
 Sometimes a reduction will specify an `initialValue` and start its work by combining it with the first value in the list, cascading down through each of the rest of the values in the list. That looks like this:
 
@@ -342,7 +389,7 @@ Expressed in JavaScript using the built-in `reduce(..)` method on arrays:
 But a standalone implementation of `reduce(..)` might look like this:
 
 ```js
-function reduce(arr,reducerFn,initialValue) {
+function reduce(reducerFn,initialValue,arr) {
 	var acc, startIdx;
 
 	if (arguments.length == 3) {
@@ -430,7 +477,19 @@ var hyphenate = (str,char) => str + "-" + char;
 // "c-b-a"
 ```
 
-Where `reduce(..)` works left-to-right and thus acts naturally like `pipe(..)` in composing functions, `reduceRight(..)`'s right-to-left ordering is natural for performing a `compose(..)`-like operation.
+Where `reduce(..)` works left-to-right and thus acts naturally like `pipe(..)` in composing functions, `reduceRight(..)`'s right-to-left ordering is natural for performing a `compose(..)`-like operation. So, let's revisit `compose(..)` using `reduceRight(..)`:
+
+```js
+function compose(...fns) {
+	return function composed(result){
+		return fns.reduceRight( function reducer(result,fn){
+			return fn( result );
+		}, result );
+	};
+}
+```
+
+Now, we don't need to do `fns.reverse()`; we just reduce from the other direction!
 
 ### Map As Reduce
 
@@ -450,6 +509,8 @@ var double = v => v * 2;
 );
 // [2,4,6,8,10]
 ```
+
+**Note:** We're cheating with this reducer and allowing a side effect by allowing `list.push(..)` to mutate the list that was passed in. In general, that's not a good idea, obviously, but since we know the `[]` list is being created and passed in, it's less dangerous. You could be more formal -- yet less performant! -- by creating a new list with the val `concat(..)`d onto the end. We'll come back to this cheat in Appendix A.
 
 Implementing `map(..)` with `reduce(..)` is not on its surface an obvious step or even an improvement. However, this ability will be a crucial recognition for more advanced techniques like those we'll cover in Appendix A "Transducing".
 
@@ -472,7 +533,7 @@ var isOdd = v => v % 2 == 1;
 // [1,3,5]
 ```
 
-Again, you'll see this trick again in Appendix A "Transducing".
+**Note:** More impure reducer cheating here. Instead of `list.push(..)`, we could have done `list.concat(..)` and returned the new list. We'll come back to this cheat in Appendix A.
 
 ## Advanced List Operations
 
@@ -605,7 +666,7 @@ firstNames
 //   ["Frederick","Fred","Freddy"] ]
 ```
 
-If we want a single dimension list with all the names:
+The return value is an array of arrays, which might be more awkward to work with. If we want a single dimension list with all the names, we can then `flatten(..)` that result:
 
 ```js
 flatten(
@@ -616,36 +677,38 @@ flatten(
 //  "Fred","Freddy"]
 ```
 
-The disadvantages of doing the `map(..)` and `flatten(..)` as separate steps are primarily around performance; this approach processes the list twice. FP libraries typically define a `flatMap(..)` (often also called `chain(..)`) that does the mapping and flattening combined, where each mapping is flattened after transformation.
+Besides being slightly more verbose, the disadvantage of doing the `map(..)` and `flatten(..)` as separate steps is primarily around performance; this approach processes the list twice.
+
+FP libraries typically define a `flatMap(..)` (often also called `chain(..)`) that does the mapping-then-flattening combined. For consistency and ease of composition (via currying), the `flatMap(..)` / `chain(..)` utility typically matches the `mapperFn, arr` parameter order that we saw earlier with the standalone `map(..)`, `filter(..)`, and `reduce(..)` utilities.
 
 ```js
-flatMap( firstNames, entry => [entry.name].concat( entry.variations ) );
+flatMap( entry => [entry.name].concat( entry.variations ), firstNames );
 // ["Jonathan","John","Jon","Jonny","Stephanie","Steph","Stephy","Frederick",
 //  "Fred","Freddy"]
 ```
 
-The basic implementation of `flatMap(..)` with both steps done separately:
+The naive implementation of `flatMap(..)` with both steps done separately:
 
 ```js
 var flatMap =
-	(arr,mapperFn) =>
+	(mapperFn,arr) =>
 		flatten( arr.map( mapperFn ), 1 );
 ```
 
-**Note:** We use `1` for the depth because the typical definition of `flatMap(..)` is that the flattening is shallow on just the first level.
+**Note:** We use `1` for the flattening-depth because the typical definition of `flatMap(..)` is that the flattening is shallow on just the first level.
 
-To perform better, though, we can combine the operations manually, using `reduce(..)`:
+Since this approach still processes the list twice resulting in worse performance, we can combine the operations manually, using `reduce(..)`:
 
 ```js
 var flatMap =
-	(arr,mapperFn) =>
+	(mapperFn,arr) =>
 		arr.reduce(
 			(list,v) =>
 				list.concat( mapperFn( v ) )
 		, [] );
 ```
 
-While there's some convenience and performance gained with this approach, there may very well be times when you need other operations like `filter(..)`ing mixed in, in which case doing the `map(..)` and `flatten(..)` separately might be more called for.
+While there's some convenience and performance gained with a `flatMap(..)` utility, there may very well be times when you need other operations like `filter(..)`ing mixed in. If that's the case, doing the `map(..)` and `flatten(..)` separately might still be more appropriate.
 
 ### Zip
 
@@ -661,20 +724,20 @@ Values `1` and `2` were selected into the sub-list `[1,2]`, then `3` and `4` int
 An implementation of `zip(..)`:
 
 ```js
-function zip(list1,list2) {
+function zip(arr1,arr2) {
 	var zipped = [];
-	list1 = list1.slice();
-	list2 = list2.slice();
+	arr1 = arr1.slice();
+	arr2 = arr2.slice();
 
-	while (list1.length > 0 && list2.length > 0) {
-		zipped.push( [ list1.shift(), list2.shift() ] );
+	while (arr1.length > 0 && arr2.length > 0) {
+		zipped.push( [ arr1.shift(), arr2.shift() ] );
 	}
 
 	return zipped;
 }
 ```
 
-The `list1.slice()` and `list2.slice()` calls ensure `zip(..)` is pure by not causing side effects with the received array references.
+The `arr1.slice()` and `arr2.slice()` calls ensure `zip(..)` is pure by not causing side effects on the received array references.
 
 **Note:** There are some decidedly un-FP things going on in this implementation. There's an imperative `while`-loop and mutations of lists with both `shift()` and `push(..)`. Earlier in the book, I asserted that it's reasonable for pure functions to use impure behavior inside them (usually for performance), as long as the effects are fully self-contained. This implementation is safely pure.
 
@@ -706,17 +769,17 @@ However, recall that `zip(..)` only selects values until the shorter of two list
 So, let's define a `mergeLists(..)` that works more like we'd expect:
 
 ```js
-function mergeLists(list1,list2) {
+function mergeLists(arr1,arr2) {
 	var merged = [];
-	list1 = list1.slice();
-	list2 = list2.slice();
+	arr1 = arr1.slice();
+	arr2 = arr2.slice();
 
-	while (list1.length > 0 || list2.length > 0) {
-		if (list1.length > 0) {
-			merged.push( list1.shift() );
+	while (arr1.length > 0 || arr2.length > 0) {
+		if (arr1.length > 0) {
+			merged.push( arr1.shift() );
 		}
-		if (list2.length > 0) {
-			merged.push( list2.shift() );
+		if (arr2.length > 0) {
+			merged.push( arr2.shift() );
 		}
 	}
 
@@ -724,7 +787,7 @@ function mergeLists(list1,list2) {
 }
 ```
 
-**Note:** Various FP libraries don't define a `mergeLists(..)` but instead define a `merge(..)` that merges properties of two objects; the results of `merge(..)` will differ from our `mergeLists(..)`.
+**Note:** Various FP libraries don't define a `mergeLists(..)` but instead define a `merge(..)` that merges properties of two objects; the results of such a `merge(..)` will differ from our `mergeLists(..)`.
 
 Alternatively, here's a couple of options to implement the list merging as a reducer:
 
@@ -781,7 +844,7 @@ Both API styles accomplish the same task, but they have very different ergonomic
 
 The visual order for that manual composition of the standalone style is neither strictly left-to-right (top-to-bottom) nor right-to-left (bottom-to-top); it's inner-to-outer, which harms the readability.
 
-Automatic composition normalizes the reading order as right-to-left (bottom-to-top) for both styles. So, to explore the implications of the form differences, let's examine composition specifically; it seems like it should be straightforward, but it's a little awkward in both cases.
+Automatic composition normalizes the reading order as right-to-left (bottom-to-top) for both styles. So, to explore the implications of the style differences, let's examine composition specifically; it seems like it should be straightforward, but it's a little awkward in both cases.
 
 ### Composing Method Chains
 
@@ -813,20 +876,29 @@ And using these two `this`-aware utilities together:
 
 ```js
 composeChainedMethods(
-   partialThis( [].reduce, sum, 0 ),
-   partialThis( [].map, double ),
-   partialThis( [].filter, isOdd )
+   partialThis( Array.prototype.reduce, sum, 0 ),
+   partialThis( Array.prototype.map, double ),
+   partialThis( Array.prototype.filter, isOdd )
 )
 ( [1,2,3,4,5] );					// 18
 ```
 
-**Note:** The three `[].XYZ`-style references are grabbing references to the generic `Array.prototype.*` methods without repeating `Array.prototype` each time; this is done by creating a throwaway `[]` empty array value to access a method reference. This is just a shorthand cheat for shorter code.
+**Note:** The three `Array.prototype.XXX`-style references are grabbing references to the built-in `Array.prototype.*` methods so that we can reuse them with our own arrays.
 
 ### Composing Standalone Utilities
 
-Standalone `compose(..)`-style composition of these utilities doesn't need all the `this` contortions, which is its most favorable argument.
+Standalone `compose(..)`-style composition of these utilities doesn't need all the `this` contortions, which is its most favorable argument. For example, we could define standalones as:
 
-But standalone style suffers from its own awkwardness; the cascading array context is the first argument rather than the last, so we have to use right-partial application:
+```js
+var filter = (arr,predicateFn) => arr.filter( predicateFn );
+
+var map = (arr,mapperFn) => arr.map( mapperFn );
+
+var reduce = (arr,reducerFn,initialValue) =>
+	arr.reduce( reducerFn, initialValue );
+```
+
+But this particular standalone style suffers from its own awkwardness; the cascading array context is the first argument rather than the last, so we have to use right-partial application to compose them:
 
 ```js
 compose(
@@ -837,7 +909,25 @@ compose(
 ( [1,2,3,4,5] );					// 18
 ```
 
-However, if `filter(..)`, `map(..)`, and `reduce(..)` are alternately defined to receive the array last instead of first, and are curried, the composition flows a bit nicer:
+That's why FP libraries typically define `filter(..)`, `map(..)`, and `reduce(..)` to alternately receive the array last instead of first. They also typically automatically curry the utilities:
+
+```js
+var filter = curry(
+	(predicateFn,arr) =>
+		arr.filter( predicateFn )
+);
+
+var map = curry(
+	(mapperFn,arr) =>
+		arr.map( mapperFn )
+);
+
+var reduce = curry(
+	(reducerFn,initialValue,arr) =>
+		arr.reduce( reducerFn, initialValue );
+```
+
+Working with the utilities defined in this way, the composition flow is a bit nicer:
 
 ```js
 compose(
@@ -852,26 +942,15 @@ The cleanliness of this approach is in part why FPers prefer the standalone util
 
 ### Adapting Methods To Standalones
 
-If you prefer to work with only standalone utilities, you can straightforwardly define standalone adaptations of the array methods.
+In the previous definition of `filter(..)` / `map(..)` / `reduce(..)`, you might have spotted the common pattern across all three: they all dispatch to the corresponding native array method. So, can we generate these standalone adaptations with a utility? Yes! Let's make a utility called `unboundMethod(..)` to do just that:
 
 ```js
-var filter = (arr,predicateFn) => arr.filter( predicateFn );
-
-var map = (arr,mapperFn) => arr.map( mapperFn );
-
-var reduce = (arr,reducerFn,initialValue) =>
-	arr.reduce( reducerFn, initialValue );
-```
-
-You might have spotted the common pattern across these three; can we generate these standalone adaptations with a utility? Yes. While we're at it, let's swap the `arr` argument to the right and `curry(..)` the generated function, to make composition easier:
-
-```js
-var unmethodify =
-	(methodName,argCount) =>
+var unboundMethod =
+	(methodName,argCount = 2) =>
 		curry(
 			(...args) => {
-				var arr = args.pop();
-				return arr[methodName]( ...args );
+				var obj = args.pop();
+				return obj[methodName]( ...args );
 			},
 			argCount
 		);
@@ -880,9 +959,9 @@ var unmethodify =
 And to use this utility:
 
 ```js
-var filter = unmethodify( "filter" );
-var map = unmethodify( "map" );
-var reduce = unmethodify( "reduce" );
+var filter = unboundMethod( "filter", 2 );
+var map = unboundMethod( "map", 2 );
+var reduce = unboundMethod( "reduce", 3 );
 
 compose(
 	reduce( sum )( 0 ),
@@ -892,16 +971,18 @@ compose(
 ( [1,2,3,4,5] );					// 18
 ```
 
+**Note:** `unboundMethod(..)` is called `invoker(..)` in Ramda.
+
 ### Adapting Standalones To Methods
 
-If you prefer to work with only array methods, you have two choices. You can:
+If you prefer to work with only array methods (fluent chain style), you have two choices. You can:
 
 1. Extend the built-in `Array.prototype` with additional methods.
-2. Adapt the standalone utility to work as a reducer function and pass it to the `reduce(..)` instance method.
+2. Adapt a standalone utility to work as a reducer function and pass it to the `reduce(..)` instance method.
 
 **Don't do (1).** It's never a good idea to extend built-in natives like `Array.prototype` -- unless you define a subclass of `Array`, but that's beyond our discussion scope here. In an effort to discourage bad practices, we won't go any further into this approach.
 
-Let's **focus on (2)** instead. Recall the `flatten(..)` standalone utility we defined earlier:
+Let's **focus on (2)** instead. To illustrate this point, we'll convert the recursive `flatten(..)` standalone utility from earlier:
 
 ```js
 var flatten =
@@ -1029,7 +1110,7 @@ Finally, to put it all together, take this list of functions and tack on the gua
 
 Gone are all the imperative variable declarations and conditionals, and in their place we have clean and declarative list operations chained together.
 
-If this version is harder for you read right now than the original, don't worry. The original is unquestionably the more common imperative form you're familiar with. Part of your evolution to become a functional programmer is to develop a recognition of FP patterns such as list operations. Over time, these will jump out of the code more readily as your sense of code readability shifts to declarative style.
+If this version is harder for you read right now than the original, don't worry. The original is unquestionably the imperative form you're probably more familiar with. Part of your evolution to become a functional programmer is to develop a recognition of FP patterns such as list operations. Over time, these will jump out of the code more readily as your sense of code readability shifts to declarative style.
 
 Before we leave this topic, let's take a reality check: the example here is heavily contrived. Not all code segments will be straightforwardly modeled as list operations. The pragmatic take-away is to develop the instinct to look for these opportunities, but not get too hung up on code acrobatics; some improvement is better than none. Always step back and ask if you're **improving or harming** code readability.
 
@@ -1047,7 +1128,7 @@ As you roll FP list operations into more of your thinking about code, you'll lik
 And more often than not, you're also probably going to end up with chains with multiple adjacent instances of each operation, like:
 
 ```js
-..
+someList
 .filter(..)
 .filter(..)
 .map(..)
@@ -1056,7 +1137,21 @@ And more often than not, you're also probably going to end up with chains with m
 .reduce(..);
 ```
 
-The good news is these chains are declarative and it's easy to read the specific steps that will happen, in order. The downside is that each of these operations loops over the entire list, meaning performance can suffer unnecessarily, especially if the list is longer.
+The good news is the chain-style is declarative and it's easy to read the specific steps that will happen, in order. The downside is that each of these operations loops over the entire list, meaning performance can suffer unnecessarily, especially if the list is longer.
+
+With the alternate standalone style, you might see code like this:
+
+```js
+map(
+	fn3,
+	map(
+		fn2,
+		map( fn1, someList )
+	)
+);
+```
+
+With this style, the operations are listed from bottom-to-top, and we still loop over the list 3 times.
 
 Fusion deals with combining adjacent operators to reduce the number of times the list is iterated over. We'll focus here on collapsing adjacent `map(..)`s as it's the most straightforward to explain.
 
@@ -1127,7 +1222,7 @@ Just as we said earlier that array's `map(..)` adapts a single-value operation t
 
 The important part to maintain in the spirit of FP is that these operators must behave according to value immutability, meaning that they must return a new data structure rather than mutating the existing one.
 
-Let's illustrate with a well-known data structure: the binary tree. A binary tree is a node (just an object!) that has two references to other nodes (binary trees), typically referred to as *left* and *right* child trees. Each node holds one value of the overall data structure.
+Let's illustrate with a well-known data structure: the binary tree. A binary tree is a node (just an object!) that has two references to other nodes (themselves binary trees), typically referred to as *left* and *right* child trees. Each node in the tree holds one value of the overall data structure.
 
 <p align="center">
 	<img src="fig7.png" width="250">
@@ -1169,49 +1264,51 @@ Our tree looks like:
 
 There are multiple ways to traverse a binary tree to process its values. If it's a BST (our's is!) and we do an *in-order* traversal -- always visit the left child tree first, then the node itself, then the right child tree -- we'll visit the values in ascending (sorted) order.
 
-For convenience, let's define a `forEach(..)` method that visits a binary tree in the same manner as an array:
+Since you can't just easily `console.log(..)` a binary tree like you can with an array, let's first define a convenience method, mostly to use for printing. `forEach(..)` will visit the nodes of a binary tree in the same manner as an array:
 
 ```js
 // in-order traversal
-BinaryTree.forEach = function forEach(node,visitFn){
+BinaryTree.forEach = function forEach(visitFn,node){
 	if (node) {
 		if (node.left) {
-			forEach( node.left, visitFn );
+			forEach( visitFn, node.left );
 		}
 
 		visitFn( node );
 
 		if (node.right) {
-			forEach( node.right, visitFn );
+			forEach( visitFn, node.right );
 		}
 	}
 };
 ```
 
-**Note:** Working with binary trees lends itself most naturally to recursive processing. Our `forEach(..)` utility recursively calls itself to process both the left and right child trees. We'll cover recursion in more detail in a later chapter, where we'll cover recursion in that chapter.
+**Note:** Working with binary trees lends itself most naturally to recursive processing. Our `forEach(..)` utility recursively calls itself to process both the left and right child trees. We'll cover recursion in more detail in a later chapter, where we'll cover recursion in that chapter on recursion.
+
+Recall `forEach(..)` was described at the beginning of this chapter as only being useful for side effects, which is not very typically desired in FP. In this case, we'll use `forEach(..)` only for the side effect of I/O, so it's perfectly reasonable as a helper.
 
 Use `forEach(..)` to print out values from the tree:
 
 ```js
-BinaryTree.forEach( banana, node => console.log( node.value ) );
+BinaryTree.forEach( node => console.log( node.value ), banana );
 // apple apricot avocado banana cantelope cherry cucumber grape
 
-// visit only `cherry`-rooted subtree
-BinaryTree.forEach( cherry, node => console.log( node.value ) );
+// visit only the `cherry`-rooted subtree
+BinaryTree.forEach( node => console.log( node.value ), cherry );
 // cantelope cherry cucumber grape
 ```
 
 To operate on our binary tree data structure using FP patterns, let's start by defining a `map(..)`:
 
 ```js
-BinaryTree.map = function map(node,mapperFn){
+BinaryTree.map = function map(mapperFn,node){
 	if (node) {
 		let newNode = mapperFn( node );
 		newNode.parent = node.parent;
 		newNode.left = node.left ?
-			map( node.left, mapperFn ) : undefined;
+			map( mapperFn, node.left ) : undefined;
 		newNode.right = node.right ?
-			map( node.right, mapperFn ): undefined;
+			map( mapperFn, node.right ): undefined;
 
 		if (newNode.left) {
 			newNode.left.parent = newNode;
@@ -1231,11 +1328,11 @@ Let's map our tree to a list of produce with all uppercase names:
 
 ```js
 var BANANA = BinaryTree.map(
-	banana,
-	node => node.value.toUpperCase()
+	node => BinaryTree( node.value.toUpperCase() ),
+	banana
 );
 
-BinaryTree.forEach( BANANA, node => console.log( node.value ) );
+BinaryTree.forEach( node => console.log( node.value ), BANANA );
 // APPLE APRICOT AVOCADO BANANA CANTELOPE CHERRY CUCUMBER GRAPE
 ```
 
@@ -1246,29 +1343,34 @@ How about `reduce(..)`? Same basic process: do an in-order traversal of the tree
 We'll mimic the behavior of the array `reduce(..)`, which makes passing the `initialValue` argument optional. This algorithm is a little trickier, but still manageable:
 
 ```js
-BinaryTree.reduce = function reduce(node,reducerFn,initialValue){
+BinaryTree.reduce = function reduce(reducerFn,initialValue,node){
+	if (arguments.length < 3) {
+		// shift the parameters since `initialValue` was omitted
+		node = initialValue;
+	}
+
 	if (node) {
 		let result;
 
 		if (arguments.length < 3) {
 			if (node.left) {
-				result = reduce( node.left, reducerFn );
+				result = reduce( reducerFn, node.left );
 			}
 			else {
 				return node.right ?
-					reduce( node.right, reducerFn, node ) :
+					reduce( reducerFn, node, node.right ) :
 					node;
 			}
 		}
 		else {
 			result = node.left ?
-				reduce( node.left, reducerFn, initialValue ) :
+				reduce( reducerFn, initialValue, node.left ) :
 				initialValue;
 		}
 
 		result = reducerFn( result, node );
 		result = node.right ?
-			reduce( node.right, reducerFn, result ) : result;
+			reduce( reducerFn, result, node.right ) : result;
 		return result;
 	}
 
@@ -1276,12 +1378,13 @@ BinaryTree.reduce = function reduce(node,reducerFn,initialValue){
 };
 ```
 
-Let's use `reduce(..)` to make our shopping list:
+Let's use `reduce(..)` to make our shopping list (an array):
 
 ```js
 BinaryTree.reduce(
-	banana,
-	(result,node) => result.concat( node.value )
+	(result,node) => result.concat( node.value ),
+	[],
+	banana
 );
 // ["apple","apricot","avocado","banana","cantelope"
 //   "cherry","cucumber","grape"]
@@ -1290,13 +1393,13 @@ BinaryTree.reduce(
 Finally, let's consider `filter(..)` for our tree. This algorithm is trickiest so far because it effectively (not actually) involves removing nodes from the tree, which requires handling several corner cases. Don't get intimiated by the implementation, though. Just skip over it for now, if you prefer, and focus on how we use it instead.
 
 ```js
-BinaryTree.filter = function filter(node,predicateFn){
+BinaryTree.filter = function filter(predicateFn,node){
 	if (node) {
 		let newNode;
 		let newLeft = node.left ?
-			filter(node.left,predicateFn) : undefined;
+			filter( predicateFn, node.left ) : undefined;
 		let newRight = node.right ?
-			filter(node.right,predicateFn) : undefined;
+			filter( predicateFn, node.right ) : undefined;
 
 		if (predicateFn( node )) {
 			newNode = BinaryTree(
@@ -1366,7 +1469,7 @@ BinaryTree.filter = function filter(node,predicateFn){
 };
 ```
 
-The majority of this code listing is dedicated to handling the shifting of node parent/child references if a node is "removed" (filtered out) of the duplicated tree structure.
+The majority of this code listing is dedicated to handling the shifting of a node's parent/child references if it's "removed" (filtered out) of the duplicated tree structure.
 
 As an example to illustrate using `filter(..)`, let's narrow our produce tree down to only vegetables:
 
@@ -1376,19 +1479,21 @@ var vegetables = [ "asparagus", "avocado", "brocolli", "carrot",
 	"zucchini" ];
 
 var whatToBuy = BinaryTree.filter(
-	banana,
-	node => vegetables.indexOf( node.value ) != -1
+	// filter the produce list only for vegetables
+	node => vegetables.indexOf( node.value ) != -1,
+	banana
 );
 
 // shopping list
 BinaryTree.reduce(
-	whatToBuy,
-	(result,node) => result.concat( node.value )
+	(result,node) => result.concat( node.value ),
+	[],
+	whatToBuy
 );
 // ["avocado","cucumber"]
 ```
 
-You will likely use most of the list operations from this chapter in the context of simple list data structures. But now we've seen that the concepts apply to whatever data structures and operations you might need. That's a powerful expression of how FP can be widely applied to many different application scenarios!
+You will likely use most of the list operations from this chapter in the context of simple arrays. But now we've seen that the concepts apply to whatever data structures and operations you might need. That's a powerful expression of how FP can be widely applied to many different application scenarios!
 
 ## Summary
 

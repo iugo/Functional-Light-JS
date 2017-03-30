@@ -10,7 +10,7 @@
 	* Take
 	* YAGNI
 	* Resources
-* Chapter 2: Functional Functions
+* Chapter 2: Foundations of Functional Functions
 	* What Is A Function?
 	* Function Input
 	* Function Output
@@ -21,6 +21,8 @@
 	* Some Now, Some Later
 	* One At A Time
 	* All For One
+	* Spread 'Em Out
+	* Order Matters
 	* No Points
 * Chapter 4: Composing Functions
 	* Output To Input
@@ -63,6 +65,9 @@
 	* Eager vs Lazy
 	* Reactive FP
 * Chapter 11: Putting It All Together
+	* Setup
+	* Stock Events
+	* Stock Ticker UI
 * Appendix A: Transducing
 * Appendix B: The Humble Monad
 * Appendix C: FP Libraries

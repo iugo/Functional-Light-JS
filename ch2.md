@@ -1,15 +1,17 @@
 # Functional-Light JavaScript
-# Chapter 2: Functional Functions
+# Chapter 2: Foundations of Functional Functions
 
-Functional Programming is **not just programming with the keyword `function`.** Oh if only it was that easy, I could end the book right here! But importantly, the function really *is* at the center of FP. And it's how we use functions that makes our code *functional*.
+Functional Programming is **not just programming with the `function` keyword.** Oh if only it was that easy, I could end the book right here! But importantly, the function really *is* at the center of FP. And it's how we use functions that makes our code *functional*.
 
 But, how sure are you that you know what *function* means?
 
-In this chapter, we're going to lay the groundwork for the rest of the book by covering all aspects of functions. Brace yourself, because there's a lot more to the function than you may have realized.
+In this chapter, we're going to lay the groundwork for the rest of the book by covering all the foundational aspects of functions. In some ways, the content here is a review of all the things even a non-FP programmer should know about functions. But if we want to get the most out learning FP concepts, we've got to *know* functions inside and out.
+
+Brace yourself, because there's a lot more to the function than you may have realized.
 
 ## What Is A Function?
 
-The most natural place I can think of to start tackling functional programming is with the *function*. That may seem too simplistic and too obvious, but I think our journey needs a solid first step.
+The most natural place I can think of to start tackling functional programming is with the *function*. That may seem too simplistic and obvious, but I think our journey needs a solid first step.
 
 So... what is a function?
 
@@ -63,7 +65,7 @@ foo( a, a * 2 );
 
 `a` and `a * 2` (actually, the result of that expression, `6`) are the *arguments* to the `foo(..)` call. `x` and `y` are the *parameters* that receive the argument values (`3` and `6`, respectively).
 
-**Note:** In JavaScript, there's no requirement that the number of *arguments* matches the number of *parameters*. If you pass more *arguments* than you have declared *parameters* to receive them, the values pass in just fine untouched. These values can be accessed in a few different ways, including the deprecated `arguments` object you may have heard of before. If you pass fewer *arguments* than the declared *parameters*, each unaccounted-for parameter is an "undefined" variable, meaning it's present and available in the scope of the function, but just starts out with the empty `undefined` value.
+**Note:** In JavaScript, there's no requirement that the number of *arguments* matches the number of *parameters*. If you pass more *arguments* than you have declared *parameters* to receive them, the values pass in just fine untouched. These values can be accessed in a few different ways, including the old-school `arguments` object you may have heard of before. If you pass fewer *arguments* than the declared *parameters*, each unaccounted-for parameter is an "undefined" variable, meaning it's present and available in the scope of the function, but just starts out with the empty `undefined` value.
 
 ### Counting Inputs
 
@@ -140,7 +142,7 @@ function foo(x,y,z) {
 foo( 3, 4 );
 ```
 
-As of ES5, `arguments` is deprecated. It'll almost certainly never be removed -- in JS we "never" break backwards-compatibility no matter how convenient that may be -- but it's strongly suggested for several reasons that you avoid using it whenever possible.
+As of ES5 (and strict mode, specifically), `arguments` is considered by some to be soft-deprecated; many will avoid using it if possible. It'll never be removed -- in JS we "never" break backwards-compatibility no matter how convenient that may be -- but it's strongly suggested for several reasons that you avoid using it whenever possible.
 
 However, I suggest that `arguments.length`, and only that, is OK to keep using for those cases where you need to care about the passed number of arguments. A future version of JS might possibly add a feature that restores the ability to determine the number of arguments passed without `arguments.length`; if that happens, then we can fully drop usage of `arguments`.
 
@@ -177,7 +179,7 @@ foo( 1, 2, 3, 4 );		// 1 2 3 [ 4 ]
 foo( 1, 2, 3, 4, 5 );	// 1 2 3 [ 4, 5 ]
 ```
 
-So, if you *really* want to be design a function that can account for an arbitrary number of arguments to be passed in, use `...args` (or whatever name you like) on the end. Now, you'll have a real, non-deprecated, non-yucky array to access those argument values from.
+So, if you *really* want to design a function that can account for an arbitrary number of arguments to be passed in, use `...args` (or whatever name you like) on the end. Now, you'll have a real, non-deprecated, non-yucky array to access those argument values from.
 
 Just pay attention to the fact that the value `4` is at position `0` of that `args`, not position `3`. And its `length` value won't include those three `1`, `2`, and `3` values. `...args` gathers everything else, not including the `x`, `y`, and `z`.
 
@@ -265,7 +267,7 @@ foo( [1,2,3] );
 Simple enough. But what if now we wanted to give a parameter name to each of the first two values in the passed in array? We aren't declaring individual parameters anymore, so it seems we lost that ability. Destructuring is the answer:
 
 ```js
-function foo( [x,y,...args] ) {
+function foo( [x,y,...args] = [] ) {
 	// ..
 }
 
@@ -297,7 +299,7 @@ Wherever possible, and to whatever degrees our language and our libraries/framew
 Just as we can destructure arrays, we can destructure object parameters:
 
 ```js
-function foo( {x,y} ) {
+function foo( {x,y} = {} ) {
 	console.log( x, y );
 }
 
@@ -319,6 +321,8 @@ Some languages have a direct feature for this behavior: named arguments. In othe
 The FP-related benefit of using an object destructuring to pass in potentially multiple arguments is that a function that only takes one parameter (the object) is much easier to compose with another function's single output. Much more on that later.
 
 Recall that the term arity refers to how many parameters a function expects to receive. A function with arity of 1 is also referred to as a unary function. In FP, we'll want our functions to be unary whenever possible, and sometimes we'll even use a variety of functional tricks to transform a function of higher arity to a unary form.
+
+**Note:** In Chapter 3, we'll revisit this named-argument destructuring trick to deal with annoying issues around parameter ordering.
 
 ### Functions Varying By Input
 
@@ -438,23 +442,23 @@ Consider this version of the code:
 function foo(x) {
 	var retValue;
 
-	if (retValue == null && x > 10) {
+	if (retValue == undefined && x > 10) {
 		retValue = x + 1;
 	}
 
 	var y = x / 2;
 
 	if (y > 3) {
-		if (retValue == null && x % 2 == 0) {
+		if (retValue == undefined && x % 2 == 0) {
 			retValue = x;
 		}
 	}
 
-	if (retValue == null && y > 1) {
+	if (retValue == undefined && y > 1) {
 		retValue = y;
 	}
 
-	if (retValue == null) {
+	if (retValue == undefined) {
 		retValue = x;
 	}
 
@@ -776,7 +780,7 @@ Consider these different scenarios:
 ```js
 // sync recursion:
 function findPropIn(propName,obj) {
-	if (obj == null || typeof obj != "object") return;
+	if (obj == undefined || typeof obj != "object") return;
 
 	if (propName in obj) {
 		return obj[propName];
@@ -913,7 +917,7 @@ Digging even further, I'd suggest that the argument in favor of `=>` is that by 
 
 I think most FPers are going to blink and wave off these concerns. They love anonymous functions and they love saving on syntax. But like I said before: you decide.
 
-**Note:** Though I do not prefer to use `=>` in practive in my applications, we will use it in many places throughout the rest of this book -- especially when we present typical FP utilities -- where conciseness is preferred to optimize for the limited physical space in code snippets. Make your own determinations whether this approach will make your own code more or less readable.
+**Note:** Though I do not prefer to use `=>` in practice in my applications, we will use it in many places throughout the rest of this book -- especially when we present typical FP utilities -- where conciseness is preferred to optimize for the limited physical space in code snippets. Make your own determinations whether this approach will make your own code more or less readable.
 
 ## What's This?
 
