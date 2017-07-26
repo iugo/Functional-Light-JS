@@ -74,9 +74,9 @@ To implement `map(..)`:
 function map(mapperFn,arr) {
 	var newList = [];
 
-	for (let idx = 0; i < arr.length; i++) {
+	for (let idx = 0; idx < arr.length; idx++) {
 		newList.push(
-			mapperFn( arr[i], idx, arr )
+			mapperFn( arr[idx], idx, arr )
 		);
 	}
 
@@ -902,8 +902,8 @@ But this particular standalone style suffers from its own awkwardness; the casca
 
 ```js
 compose(
-	partialRight( reduce, sum, 0 )
-	partialRight( map, double )
+	partialRight( reduce, sum, 0 ),
+	partialRight( map, double ),
 	partialRight( filter, isOdd )
 )
 ( [1,2,3,4,5] );					// 18
@@ -1025,7 +1025,7 @@ var getUserId = partial( prop, "uId" );
 var session, sessionId, user, userId, orders;
 
 session = getCurrentSession();
-if (session != null) sessionId = getSessionId( sessionId );
+if (session != null) sessionId = getSessionId( session );
 if (sessionId != null) user = lookupUser( sessionId );
 if (user != null) userId = getUserId( user );
 if (userId != null) orders = lookupOrders( userId );
